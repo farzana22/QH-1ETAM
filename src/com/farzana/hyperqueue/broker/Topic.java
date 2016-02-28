@@ -3,9 +3,12 @@
  */
 package com.farzana.hyperqueue.broker;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
+
+import javax.servlet.http.Cookie;
 
 /**
  * @author farza
@@ -14,6 +17,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class Topic {
 
 	private final String topicName;
+
+	private final static Object lock = new Object();
+
+	private final HashMap<ConsumerSession, Integer> consumerSessions = new HashMap<ConsumerSession, Integer>();
 
 	/**
 	 * This concurrent queue serves as a FIFO queue
@@ -61,23 +68,33 @@ public class Topic {
 	}
 
 	/**
+	 * @param cookie
 	 * @return
 	 */
-	public String[] getNextEvent() {
-		if (events.size() == 0) {
+	public String[] getNextEvent(Cookie cookie) {
+
+		int offset = 0;
+		ConsumerSession session = ConsumerSession.getConsumerSession(new Integer(cookie.getValue()));
+		cookie.setValue(Integer.toString(session.getSID()));
+
+		synchronized (lock) {
+			if (consumerSessions.containsKey(session)) {
+				offset = consumerSessions.get(session);
+			}
+		}
+
+		if (events.size() == 0 || offset > events.size() - 1) {
 			return new String[2];
 		}
 		String[] eventStrings = new String[2];
-		eventStrings[0] = events.get(0).getKey();
-		eventStrings[1] = events.get(0).getValue();
+		eventStrings[0] = events.get(offset).getKey();
+		eventStrings[1] = events.get(offset).getValue();
+
+		synchronized (lock) {
+			consumerSessions.put(session, ++offset);
+		}
+
 		return eventStrings;
-
-		// Iterator<Event> eventIterator = events.iterator();
-		// while (eventIterator.hasNext()) {
-		// Event e = eventIterator.next();
-		// System.out.println(e.getKey() + " " + e.getValue());
-
-		// }
 
 	}
 

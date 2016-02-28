@@ -4,10 +4,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.UUID;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -40,24 +40,32 @@ public class HyperQueueServlet extends HttpServlet {
 			throws ServletException, IOException {
 
 		if (isPostResponse) {
-			response.getWriter().println("Event registered in the topic");
+			response.getWriter().println("Event registered to the topic");
 			return;
 		}
 
-		System.out.println(request.getIntHeader(ConsumerSession.getSessionName()));
-
-		response.setIntHeader(ConsumerSession.getSessionName(), UUID.randomUUID().hashCode());
-
 		String topicName = getTopicName(request);
+
+		if (topicName.equals(""))
+			return;
 
 		// Get topic from topic name
 		Topic topic = Broker.getTopic(topicName);
 
-		response.getWriter().append("Hello World\n");
-		response.getWriter().println("Hello World");
+		Cookie cookie;
+		if (request.getCookies() == null || request.getSession().isNew()) {
+			cookie = new Cookie(ConsumerSession.getSessionName(), Integer.toString(-1));
+		} else {
+			cookie = request.getCookies()[0];
+		}
 
-		String key = topic.getNextEvent()[0];
-		String value = topic.getNextEvent()[1];
+		String[] event = topic.getNextEvent(cookie);
+
+		System.out.println(cookie.getName() + " - " + cookie.getValue());
+		response.addCookie(cookie);
+
+		String key = event[0];
+		String value = event[1];
 
 		if (key == null || value == null) {
 			response.getWriter().println("No new event to display");
@@ -77,12 +85,8 @@ public class HyperQueueServlet extends HttpServlet {
 		isPostResponse = true;
 
 		String keyValuePair = getBody(request);
-		System.out.println(keyValuePair);
-		System.out.println(request.getRequestURI());
 
 		String topicName = getTopicName(request);
-
-		System.out.println(topicName);
 
 		Topic topic = Broker.getTopic(topicName);
 
@@ -108,7 +112,7 @@ public class HyperQueueServlet extends HttpServlet {
 		int stringPosition = 0;
 		for (String tmpString : strings) {
 			stringPosition++;
-			if (tmpString.equalsIgnoreCase("HyperQueueServlet")) {
+			if (tmpString.equalsIgnoreCase("HyperQueueServlet") && stringPosition < tmpString.length()) {
 				topicName = strings[stringPosition];
 				break;
 			} // end if
