@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.UUID;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -11,6 +12,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.farzana.hyperqueue.broker.Broker;
+import com.farzana.hyperqueue.broker.ConsumerSession;
 import com.farzana.hyperqueue.broker.Topic;
 
 /**
@@ -19,6 +22,8 @@ import com.farzana.hyperqueue.broker.Topic;
 @WebServlet("/HyperQueueServlet")
 public class HyperQueueServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
+
+	private boolean isPostResponse = false;
 
 	/**
 	 * Default constructor.
@@ -33,8 +38,33 @@ public class HyperQueueServlet extends HttpServlet {
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		// TODO Auto-generated method stub
-		response.getWriter().append("Hello World");
+
+		if (isPostResponse) {
+			response.getWriter().println("Event registered in the topic");
+			return;
+		}
+
+		System.out.println(request.getIntHeader(ConsumerSession.getSessionName()));
+
+		response.setIntHeader(ConsumerSession.getSessionName(), UUID.randomUUID().hashCode());
+
+		String topicName = getTopicName(request);
+
+		// Get topic from topic name
+		Topic topic = Broker.getTopic(topicName);
+
+		response.getWriter().append("Hello World\n");
+		response.getWriter().println("Hello World");
+
+		String key = topic.getNextEvent()[0];
+		String value = topic.getNextEvent()[1];
+
+		if (key == null || value == null) {
+			response.getWriter().println("No new event to display");
+			return;
+		}
+
+		response.getWriter().println("Key = " + key + " Value = " + value);
 	}
 
 	/**
@@ -44,9 +74,32 @@ public class HyperQueueServlet extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 
-		String keyValue = getBody(request);
-		System.out.println(keyValue);
+		isPostResponse = true;
+
+		String keyValuePair = getBody(request);
+		System.out.println(keyValuePair);
 		System.out.println(request.getRequestURI());
+
+		String topicName = getTopicName(request);
+
+		System.out.println(topicName);
+
+		Topic topic = Broker.getTopic(topicName);
+
+		String[] strings = keyValuePair.split("=");
+		topic.addEvent(strings[0], strings[1]);
+
+		doGet(request, response);
+
+		isPostResponse = false;
+
+	} // end doGet()
+
+	/*
+	 * This will get the topic name from the URI Format:
+	 * http://localhost:8080/HyperQueue/HyperQueueServlet/<topic name>
+	 */
+	private String getTopicName(HttpServletRequest request) {
 
 		String uri = request.getRequestURI();
 		String[] strings = uri.split("/");
@@ -61,18 +114,16 @@ public class HyperQueueServlet extends HttpServlet {
 			} // end if
 		} // end for
 
-		System.out.println(topicName);
+		return topicName;
+	}
 
-		Topic topic = Topic.getTopic(topicName);
-
-		strings = keyValue.split("=");
-		topic.addEvent(strings[0], strings[1]);
-
-		topic.printEvents();
-
-		doGet(request, response);
-	} // end doGet()
-
+	/**
+	 * Parse POST request body
+	 * 
+	 * @param request
+	 * @return
+	 * @throws IOException
+	 */
 	public static String getBody(HttpServletRequest request) throws IOException {
 
 		String body = null;

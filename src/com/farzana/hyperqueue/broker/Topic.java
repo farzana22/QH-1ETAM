@@ -8,17 +8,10 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
- * Topic (queue) blueprint
- * 
  * @author farza
  *
  */
 public class Topic {
-
-	/**
-	 * Concurrent list of topics
-	 */
-	private final static CopyOnWriteArrayList<Topic> topics = new CopyOnWriteArrayList<Topic>();
 
 	private final String topicName;
 
@@ -35,34 +28,10 @@ public class Topic {
 	/*
 	 * Private constructor to allow create only new Topic
 	 */
-	private Topic(String topicName) {
+	Topic(String topicName) {
 		this.topicName = topicName;
-		topics.add(this);
+
 	}
-
-	/**
-	 * This will return an existing or a new Topic (queue) based on internal
-	 * checking
-	 * 
-	 * @param topicName
-	 * @return the Topic object
-	 */
-	public static Topic getTopic(String topicName) {
-		if (topics.size() < 1) {
-			return new Topic(topicName);
-		}
-
-		Iterator<Topic> topicIterator = topics.iterator();
-		while (topicIterator.hasNext()) {
-			Topic topic = topicIterator.next();
-			if (topic.topicName.equals(topicName)) {
-				return topic;
-			} // end if
-		} // end while
-
-		return new Topic(topicName);
-
-	} // end getTopic()
 
 	/**
 	 * Adds events to the current Topic (queue)
@@ -77,7 +46,7 @@ public class Topic {
 				if (iter.next().getValue().equalsIgnoreCase(value)) {
 					return;
 				} // end inner if
-			} // end while 
+			} // end while
 		} // end outer if
 
 		fifoEvents.add(new Event(fieldName, value));
@@ -91,13 +60,32 @@ public class Topic {
 		events.add(poll);
 	}
 
-	public void printEvents() {
-		Iterator<Event> eventIterator = events.iterator();
-		while (eventIterator.hasNext()) {
-			Event e = eventIterator.next();
-			System.out.println(e.getName() + " " + e.getValue());
-
+	/**
+	 * @return
+	 */
+	public String[] getNextEvent() {
+		if (events.size() == 0) {
+			return new String[2];
 		}
+		String[] eventStrings = new String[2];
+		eventStrings[0] = events.get(0).getKey();
+		eventStrings[1] = events.get(0).getValue();
+		return eventStrings;
+
+		// Iterator<Event> eventIterator = events.iterator();
+		// while (eventIterator.hasNext()) {
+		// Event e = eventIterator.next();
+		// System.out.println(e.getKey() + " " + e.getValue());
+
+		// }
 
 	}
+
+	/**
+	 * @return the topicName
+	 */
+	public String getTopicName() {
+		return topicName;
+	}
+
 }

@@ -9,11 +9,11 @@ package com.farzana.hyperqueue.broker;
  */
 public class Event {
 
-	private String fieldName;
+	private String key;
 	private String value;
 
 	public Event(String name, String value) {
-		this.fieldName = name;
+		this.key = name;
 		this.value = value;
 	}
 
@@ -25,10 +25,10 @@ public class Event {
 	}
 
 	/**
-	 * @return the name
+	 * @return the key
 	 */
-	public String getName() {
-		return fieldName;
+	public String getKey() {
+		return key;
 	}
 
 }
