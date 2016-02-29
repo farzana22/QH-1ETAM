@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -23,13 +24,12 @@ import com.farzana.hyperqueue.broker.Topic;
 public class HyperQueueServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
-	private boolean isPostResponse = false;
+	private Cookie cookie;
 
 	/**
 	 * Default constructor.
 	 */
 	public HyperQueueServlet() {
-		// TODO Auto-generated constructor stub
 	}
 
 	/**
@@ -39,29 +39,28 @@ public class HyperQueueServlet extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 
-		if (isPostResponse) {
-			response.getWriter().println("Event registered to the topic");
-			return;
-		}
-
 		String topicName = getTopicName(request);
 
-		if (topicName.equals(""))
+		if (topicName.equals("")) {
 			return;
-
-		// Get topic from topic name
-		Topic topic = Broker.getTopic(topicName);
-
-		Cookie cookie;
-		if (request.getCookies() == null || request.getSession().isNew()) {
-			cookie = new Cookie(ConsumerSession.getSessionName(), Integer.toString(-1));
-		} else {
-			cookie = request.getCookies()[0];
 		}
 
-		String[] event = topic.getNextEvent(cookie);
+		boolean isConsumerSessionID = false;
 
-		System.out.println(cookie.getName() + " - " + cookie.getValue());
+		Cookie[] cookies = request.getCookies();
+		for (Cookie tmpCookie : cookies) {
+			cookie = tmpCookie;
+			isConsumerSessionID = cookie.getName().equalsIgnoreCase(ConsumerSession.getSessionName());
+			if (isConsumerSessionID)
+				break;
+		}
+		if (request.getCookies() == null || request.getSession().isNew() || !isConsumerSessionID) {
+			cookie = new Cookie(ConsumerSession.getSessionName(), Integer.toString(-1));
+		} else {
+		}
+
+		String[] event = Broker.getNextEvent(cookie, topicName);
+
 		response.addCookie(cookie);
 
 		String key = event[0];
@@ -82,8 +81,6 @@ public class HyperQueueServlet extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 
-		isPostResponse = true;
-
 		String keyValuePair = getBody(request);
 
 		String topicName = getTopicName(request);
@@ -93,9 +90,8 @@ public class HyperQueueServlet extends HttpServlet {
 		String[] strings = keyValuePair.split("=");
 		topic.addEvent(strings[0], strings[1]);
 
-		doGet(request, response);
-
-		isPostResponse = false;
+		// doGet(request, response);
+		response.getWriter().println("Event registered to the topic");
 
 	} // end doGet()
 
@@ -105,18 +101,21 @@ public class HyperQueueServlet extends HttpServlet {
 	 */
 	private String getTopicName(HttpServletRequest request) {
 
-		String uri = request.getRequestURI();
+		String uri = request.getRequestURI().trim();
 		String[] strings = uri.split("/");
+		strings = Arrays.copyOfRange(strings, 1, strings.length);
 		String topicName = "";
 
 		int stringPosition = 0;
 		for (String tmpString : strings) {
 			stringPosition++;
-			if (tmpString.equalsIgnoreCase("HyperQueueServlet") && stringPosition < tmpString.length()) {
+			if (tmpString.equalsIgnoreCase("HyperQueueServlet") && stringPosition < strings.length) {
 				topicName = strings[stringPosition];
 				break;
 			} // end if
 		} // end for
+
+		topicName = topicName.replaceFirst("producer_", "");
 
 		return topicName;
 	}
@@ -167,7 +166,6 @@ public class HyperQueueServlet extends HttpServlet {
 	 */
 	protected void doHead(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		// TODO Auto-generated method stub
 	}
 
 }

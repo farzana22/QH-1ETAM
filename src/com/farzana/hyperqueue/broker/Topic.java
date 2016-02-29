@@ -3,12 +3,9 @@
  */
 package com.farzana.hyperqueue.broker;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
-
-import javax.servlet.http.Cookie;
 
 /**
  * @author farza
@@ -17,10 +14,6 @@ import javax.servlet.http.Cookie;
 public class Topic {
 
 	private final String topicName;
-
-	private final static Object lock = new Object();
-
-	private final HashMap<ConsumerSession, Integer> consumerSessions = new HashMap<ConsumerSession, Integer>();
 
 	/**
 	 * This concurrent queue serves as a FIFO queue
@@ -71,17 +64,7 @@ public class Topic {
 	 * @param cookie
 	 * @return
 	 */
-	public String[] getNextEvent(Cookie cookie) {
-
-		int offset = 0;
-		ConsumerSession session = ConsumerSession.getConsumerSession(new Integer(cookie.getValue()));
-		cookie.setValue(Integer.toString(session.getSID()));
-
-		synchronized (lock) {
-			if (consumerSessions.containsKey(session)) {
-				offset = consumerSessions.get(session);
-			}
-		}
+	public String[] getNextEvent(int offset) {
 
 		if (events.size() == 0 || offset > events.size() - 1) {
 			return new String[2];
@@ -90,12 +73,23 @@ public class Topic {
 		eventStrings[0] = events.get(offset).getKey();
 		eventStrings[1] = events.get(offset).getValue();
 
-		synchronized (lock) {
-			consumerSessions.put(session, ++offset);
-		}
-
 		return eventStrings;
 
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (!(obj instanceof Topic)) {
+			return false;
+		}
+
+		Topic topic = (Topic) obj;
+
+		if (this.getTopicName().equalsIgnoreCase(topic.getTopicName())) {
+			return true;
+		}
+
+		return false;
 	}
 
 	/**

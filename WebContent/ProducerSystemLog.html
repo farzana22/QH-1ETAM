@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Insert title here</title>
+<script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+</head>
+<body>
+
+
+	<p>
+		Key: <input type="text" id="key" name="key" value="sysError" disabled>
+	</p>
+	<p>
+		Value: <input type="number" name="userID" id="sysError">
+	</p>
+	<p>
+		<input type="button" value="Register" id="btn">
+	</p>
+	<p>
+		<textarea id="response" disabled="disabled">register</textarea>
+	</p>
+
+	<script type="text/javascript">
+
+	$(document).ready(function(){
+	$("#btn").click(function(event) {
+
+		var key = $('#key').val();
+		var sysError = $('#sysError').val();
+
+
+		$.ajax({
+			  method: "POST",
+			  url: "/HyperQueue/HyperQueueServlet/sysLog",
+			  data: { sysError : sysError }
+		}).done(function( msg ) {
+				$('#response').val(msg);
+		});
+		
+	});
+	});
+
+	</script>
+
+</body>
+</html>

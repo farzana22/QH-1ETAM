@@ -4,6 +4,41 @@
 	xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
 	id="WebApp_ID" version="3.1">
 	<display-name>HyperQueue</display-name>
+	<servlet>
+		<servlet-name>producerNewUser</servlet-name>
+		<jsp-file>/ProducerNewUser.html</jsp-file>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>producerNewUser</servlet-name>
+		<url-pattern>/producer_newUser</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>producerSysLog</servlet-name>
+		<jsp-file>/ProducerSystemLog.html</jsp-file>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>producerSysLog</servlet-name>
+		<url-pattern>/producer_sysLog</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>consumerNewUser</servlet-name>
+		<jsp-file>/ConsumerNewUser.html</jsp-file>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>consumerNewUser</servlet-name>
+		<url-pattern>/consumer_newUser</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>consumerSysLog</servlet-name>
+		<jsp-file>/ConsumerSysLog.html</jsp-file>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>consumerSysLog</servlet-name>
+		<url-pattern>/consumer_sysLog</url-pattern>
+	</servlet-mapping>
 
 	<servlet>
 		<servlet-name>HyperQueueServlet</servlet-name>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Insert title here</title>
+<script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+</head>
+<body>
+
+
+	<p>
+		EventLog: <input type="text" id="key" name="key"
+			value="press Consume button" disabled>
+	</p>
+
+	<p>
+		<input type="button" value="Consume" id="btn">
+	</p>
+
+	<p>
+		<textarea id="response" disabled="disabled">No events to show!</textarea>
+	</p>
+
+	<script type="text/javascript">
+
+	$(document).ready(function(){
+	
+	$("#btn").click(function(event) {
+		$.ajax({
+			  method: "GET",
+			  url: "/HyperQueue/HyperQueueServlet/sysLog"
+			  
+		}).done(function( msg ) {
+			$('#response').val(msg);
+		});
+		
+		});
+	});
+
+	</script>
+
+</body>
+</html>
