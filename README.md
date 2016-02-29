@@ -22,12 +22,13 @@
 _P.S. change the port# from Tomcat's default 8080 to the one your server uses_
 
 #### 3. Test
-3.1 Producer:  
+###### 3.1 Producer:  
 * Open any link for the producers (2.1 or 2.2)
 * Enter Number in the TextField
 * Click Register
-* TextArea will be display POST response
-3.2 Consumer:
+* TextArea will be display POST response 
+
+###### 3.2 Consumer:
 * Open any link for the consumers (2.3 or 2.4)
 * Click Consume
 * TextArea will be display GET response
