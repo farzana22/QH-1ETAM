@@ -7,11 +7,11 @@
 ##### * Tomcat v8.0, * jre1.8
 
 #### 1. Deploy from .war
-* Istall Tomcat v8.0
-* Copy HyperQueue.war to <Tomcat v8.0 install dir>/webapps
+* Install Tomcat v8.0
+* Copy HyperQueue.war to {Tomcat v8.0 install dir}/webapps
   * .war is attached in the email
-* Start Tomcat v8.0 from <Tomcat v8.0 install dir>/bin/startup.bat (or startup.sh)
-* Use project links from 2. Links section and follow steps in Test section
+* Start Tomcat v8.0 from {Tomcat v8.0 install dir}/bin/startup.bat (or startup.sh)
+* Use project links from section 2.Links and follow steps in section 3.Test
  
 #### 2. Links
 2.1 Producer role to register events in newUser queue: http://localhost:8080/HyperQueue/producer_newUser  
